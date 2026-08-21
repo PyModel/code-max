@@ -1,8 +1,12 @@
-# code-max
+<p align="center">
+  <img src="banner.svg" alt="code-max" width="100%">
+</p>
 
-[![Skill](https://img.shields.io/badge/type-agent%20skill-black?style=flat)](SKILL.md)
-[![Agents](https://img.shields.io/badge/agents-claude%20%7C%20codex%20%7C%20cursor%20%7C%20gemini%20%7C%20pi%20%7C%20opencode-blue?style=flat)](skills.sh)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
+<p align="center">
+  <a href="SKILL.md"><img src="https://img.shields.io/badge/type-agent%20skill-0b0e14?style=flat" alt="agent skill"></a>
+  <a href="skills.sh"><img src="https://img.shields.io/badge/works%20with-any%20coding%20agent-5ee2a0?style=flat&labelColor=0b0e14" alt="any coding agent"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8b98a8?style=flat&labelColor=0b0e14" alt="MIT"></a>
+</p>
 
 An agent skill that stops a coding agent from telling you it finished when it did not.
 
