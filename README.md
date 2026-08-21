@@ -6,6 +6,7 @@
   <a href="SKILL.md"><img src="https://img.shields.io/badge/type-agent%20skill-0b0e14?style=flat" alt="agent skill"></a>
   <a href="skills.sh"><img src="https://img.shields.io/badge/works%20with-any%20coding%20agent-5ee2a0?style=flat&labelColor=0b0e14" alt="any coding agent"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8b98a8?style=flat&labelColor=0b0e14" alt="MIT"></a>
+  <a href="https://skills.sh/PyModel/code-max"><img src="https://skills.sh/b/PyModel/code-max" alt="skills.sh installs"></a>
 </p>
 
 An agent skill that stops a coding agent from telling you it finished when it did not.
@@ -24,6 +25,14 @@ Coding agents like to say "done" after writing code they never ran. code-max rep
 Every run ends with a fixed report: status, requirements, changed files, commands actually executed, pre-existing failures, and open risks. The status is either `COMPLETE` or `BLOCKED`, and `BLOCKED` needs a real external reason such as missing credentials or unreachable infrastructure.
 
 ## Install
+
+```bash
+npx skills add PyModel/code-max
+```
+
+Installs into whichever agents the [`skills`](https://github.com/vercel-labs/skills) CLI finds on your machine. Update later with `npx skills update code-max`.
+
+Or clone and symlink it yourself:
 
 ```bash
 git clone https://github.com/PyModel/code-max.git
