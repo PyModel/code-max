@@ -1,4 +1,4 @@
-name: ci
+name: docs
 
 on:
   push:
@@ -9,11 +9,17 @@ permissions:
   contents: read
 
 jobs:
-  lint:
+  docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: shellcheck
-        run: shellcheck skills.sh
-      - name: skill frontmatter present
-        run: head -1 SKILL.md | grep -qx -- '---'
+      - name: SKILL.md frontmatter is valid
+        run: |
+          head -1 SKILL.md | grep -qx -- '---'
+          grep -qx 'name: code-max' SKILL.md
+          grep -q '^description: Use when ' SKILL.md
+      - name: README and AGENTS links resolve
+        run: |
+          grep -ohE '\]\(([^)#:]+)\)' README.md AGENTS.md | sed -E 's/^\]\(|\)$//g' | sort -u | while read -r f; do
+            test -e "$f" || { echo "broken link: $f"; exit 1; }
+          done

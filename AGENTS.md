@@ -22,13 +22,13 @@ This repository *is* an agent skill. The skill body lives in `SKILL.md` — read
 ## Verifying
 
 ```bash
-shellcheck skills.sh          # lint
+shellcheck skills.sh          # lint (local only, not in CI)
 head -1 SKILL.md              # must be ---
 ./skills.sh                   # idempotent; re-running must not break existing symlinks
 ```
 
-CI (`.github/workflows/ci.yml`) runs the first two on every push and pull request.
+CI (`.github/workflows/ci.yml`) checks the docs only: `SKILL.md` frontmatter and that links in `README.md` / `AGENTS.md` resolve. There are no test suites here — keep it that way.
 
 ## Contributing flow
 
-`main` is protected: force-pushes and deletions are blocked, history is linear, and CI must pass. Work on a branch, open a PR, let `ci / lint` go green, then squash-merge.
+`main` is protected: force-pushes and deletions are blocked, history is linear, and CI must pass. Work on a branch, open a PR, let `docs` go green, then squash-merge.
