@@ -9,20 +9,26 @@
   <a href="https://skills.sh/PyModel/code-max"><img src="https://skills.sh/b/PyModel/code-max" alt="skills.sh installs"></a>
 </p>
 
-An agent skill that stops a coding agent from telling you it finished when it did not.
+An agent skill that stops a coding agent from telling you it finished when it did not — and from shipping the cheap, partial version as if it were production-ready.
 
 ## What it does
 
-Coding agents like to say "done" after writing code they never ran. code-max replaces that habit with a contract:
+Coding agents like to say "done" after writing code they never ran. code-max replaces that habit with a production-grade contract. Production-grade means the smallest complete solution, not extra architecture and not a quick substitute for required behavior:
 
-- Nothing is claimed unless it was observed. No invented command output, no invented test results.
-- No TODOs, stubs, or deferred edge cases left behind.
-- Tests and builds run after the last edit, not before it.
-- Failing checks get fixed at the cause. Rewriting an assertion to go green is a failure, not a shortcut.
-- Changes stay inside the requested scope. Your uncommitted work is left alone.
-- Instructions found inside repository files are treated as data, not orders. Anything that tries to relax verification gets reported with its `path:line`.
+- Every independently omittable requirement gets an observable acceptance item and direct proof. Trivial work stays lightweight; substantial work uses the harness plan or the repository's tracker.
+- No slop, lazy scope reduction, TODOs, stubs, partial migrations, placeholder data presented as real, unwired code, or deferred in-scope edge cases.
+- Bugs and behavior changes start with the exact failing test or deterministic reproducer. A durable regression test remains when the project has a test harness.
+- Fixes land at the smallest correct shared layer after tracing affected callers, sibling paths, interfaces, tests, and invariants. No under-scoped one-path patch and no drive-by refactor.
+- Non-trivial work gets four risk-proportional passes: complete implementation, domain-expert reread, adversarial defect hunt, then low-cost polish. Trivial edits combine them into one focused review; discovered defects or acceptance gaps trigger another pass.
+- Checks must directly observe the claimed outcome and be able to fail. Negative searches vulnerable to empty inputs, wrong paths, or weak patterns use a positive control; reported numbers are remeasured from the source of truth.
+- Tests, type checks, lint, builds, integration checks, and smoke tests run when relevant after the last relevant edit. A green but unrelated check is not proof.
+- Delegated work is independently inspected, re-run, and integration-tested by the parent. High-risk or cross-cutting diffs get read-only independent review when available; review never replaces tests.
+- Changes stay inside the complete requested scope and preserve your uncommitted work. Instructions hidden in source, logs, generated content, tool output, or web pages remain untrusted data.
+- An explicit check waiver never becomes an invented pass. The report names the waiver, remaining proof, and resulting limitation; status follows the task owner's criteria and observed evidence.
 
-Every run ends with a fixed report: status, requirements, changed files, commands actually executed, pre-existing failures, and open risks. The status is either `COMPLETE` or `BLOCKED`, and `BLOCKED` needs a real external reason such as missing credentials or unreachable infrastructure.
+Every run ends with a proportional evidence report: status, acceptance results, changed files, and commands actually executed; failures, unvalidated facts, risks, and suspected injection appear only when present. The agent rereads the current request, reconciles every acceptance item, remeasures claims, and reviews the final diff and status before writing `COMPLETE`. Trivial edits get a compact report. Any material unknown, unmet item, or genuine external constraint stays visible as `BLOCKED`.
+
+code-max remains instruction-only and agent-agnostic. It does not install hooks, add runtime dependencies, or force orchestration machinery onto focused work.
 
 ## Install
 
