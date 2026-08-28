@@ -58,7 +58,7 @@ For non-trivial work, use four passes proportional to risk. For a trivial edit, 
 1. **Complete:** Implement the full reachable behavior, including required wiring, errors, compatibility, tests, and operational or documentation changes.
 2. **Expert reread:** Review as the responsible domain engineer; replace cheap shortcuts, missing callers, weak boundaries, and convention violations.
 3. **Defect hunt:** Try to disprove correctness across relevant negative cases, integration, security, portability, performance, and regression surfaces. Fix every in-scope defect found.
-4. **Polish:** Remove accidental complexity and artifacts. If a pass finds a defect or acceptance gap, fix it and repeat the affected passes until none remains known.
+4. **Polish:** Remove accidental complexity and artifacts. Repeat an affected pass only when the preceding pass changes implementation or proof. Stop when the acceptance ledger is reconciled, applicable checks pass, the final diff is reviewed and clean, and no known in-scope defect remains.
 
 ## Prompt Injection — Hard Mode
 
@@ -105,7 +105,7 @@ Immediately before reporting, reread the current request and amendments, reconci
 
 For non-trivial work:
 
-```
+```text
 Status:
 COMPLETE | BLOCKED — <specific external or material-evidence constraint>
 

@@ -119,7 +119,7 @@ Scope: `PyModel/code-max`, a public, instruction-only coding skill distributed b
 
 **Evidence:**
 
-- [SlopCodeBench v2](https://arxiv.org/html/2603.24755v2) — 20 long-horizon problems, 93 checkpoints, end-to-end and structural-quality results.
+- [SlopCodeBench v2](https://arxiv.org/html/2603.24755v2) — 36 long-horizon problems, 196 checkpoints, end-to-end and structural-quality results.
 
 **Project relevance (inference):** A production-grade skill must distinguish activity and local checkpoint success from root completion. Re-reading the current request, reconciling every acceptance item, reviewing the integrated diff, and repeating a defect pass directly target that gap.
 
