@@ -4,22 +4,52 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: code-max-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  docs:
-    runs-on: ubuntu-latest
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.10'
+          - os: macos-latest
+            python: '3.13'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: SKILL.md frontmatter is valid
-        run: |
-          head -1 SKILL.md | grep -qx -- '---'
-          grep -qx 'name: code-max' SKILL.md
-          grep -q '^description: Use when ' SKILL.md
-      - name: README and AGENTS links resolve
-        run: |
-          grep -ohE '\]\(([^)#:]+)\)' README.md AGENTS.md | sed -E 's/^\]\(|\)$//g' | sort -u | while read -r f; do
-            test -e "$f" || { echo "broken link: $f"; exit 1; }
-          done
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Validate the skill package
+        run: python3 scripts/validate.py
+      - name: Run isolated utility regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Check Bash syntax
+        run: bash -n skills.sh
+      - name: ShellCheck
+        if: runner.os == 'Linux'
+        run: shellcheck skills.sh
+
+  # Preserve the existing branch-protection context, including matrix failures.
+  docs:
+    if: always()
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every check to pass
+        env:
+          CHECK_RESULT: ${{ needs.checks.result }}
+        run: test "$CHECK_RESULT" = success

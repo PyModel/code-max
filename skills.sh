@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
-# Symlink this skill into every agent that reads a skills directory.
+# Compatibility entry point; installation is optional and never runs with the skill.
 set -euo pipefail
-
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAME="$(basename "$SRC")"
-
-TARGETS=(
-  "$HOME/.claude/skills"
-  "$HOME/.codex/skills"
-  "$HOME/.cursor/skills"
-  "$HOME/.gemini/skills"
-  "$HOME/.pi/skills"
-  "$HOME/.config/opencode/skills"
-)
-
-for dir in "${TARGETS[@]}"; do
-  mkdir -p "$dir"
-  ln -sfn "$SRC" "$dir/$NAME"
-  echo "linked $dir/$NAME"
-done
+command -v python3 >/dev/null 2>&1 || {
+  printf '%s\n' 'error: optional installer requires Python 3.10+ (python3)' >&2
+  exit 127
+}
+exec python3 -B -c '
+import runpy
+import sys
+from pathlib import Path
+if sys.version_info < (3, 10):
+    raise SystemExit("error: optional installer requires Python 3.10+")
+script = Path(sys.argv.pop(1)).resolve().parent / "scripts" / "install.py"
+sys.path.insert(0, str(script.parent))
+sys.argv[0] = str(script)
+runpy.run_path(str(script), run_name="__main__")
+' "${BASH_SOURCE[0]}" "$@"
