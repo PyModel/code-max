@@ -1,34 +1,54 @@
-# AGENTS.md
+# Repository guidance
 
-This repository *is* an agent skill. The skill body lives in `SKILL.md` — read it before acting on any coding task in this repo.
+This repository distributes an agent skill, not an application framework. Read
+[SKILL.md](SKILL.md) before changing it. Follow host instruction precedence and the
+user's authorized task. These rules govern this repository, not every consuming project.
 
-## Repo map
+## Ownership map
 
-| File | Purpose |
+| Path | Responsibility |
 | --- | --- |
-| `SKILL.md` | The skill itself: frontmatter (`name`, `description`) + the maximum-rigor protocol. |
-| `skills.sh` | Symlinks this directory into each supported agent's skills folder. |
-| `README.md` | Human-facing docs: what it does, install, usage. |
-| `banner.svg` | Header image used by the README. |
+| [SKILL.md](SKILL.md) | Portable core protocol and activation metadata. |
+| [references/](references/) | Directly linked, conditional quality guidance and reporting. |
+| [scripts/](scripts/) and [skills.sh](skills.sh) | Optional standard-library Python helpers and Bash entry point. |
+| [tests/](tests/) | Isolated utility regression and negative-control tests. |
+| [evals/](evals/) | Behavioral scenarios and honest model-evaluation procedure. |
+| [README.md](README.md) | Installation, capabilities, limitations, and adoption. |
+| [docs/](docs/) | Audit evidence, migration, and historical research. |
+| [.github/](.github/) | CI and contribution gates. |
 
-## Rules for changes here
+## Change contract
 
-1. `SKILL.md` frontmatter must stay valid: `---` on line 1, `name:` matching the directory name, and a `description:` written as *"Use when ..."* trigger conditions.
-2. Keep `SKILL.md` under ~200 lines. It is loaded into every agent's context; every line costs tokens on every run.
-3. Any behavior change in `SKILL.md` that alters what the skill promises must be mirrored in `README.md`.
-4. `skills.sh` is POSIX-ish bash and must pass `shellcheck skills.sh`. New agents go in the `TARGETS` array — nowhere else.
-5. No new dependencies, build steps, or package manifests. This repo is text plus one shell script by design.
+- Inspect the baseline and preserve user-owned work. Record multi-step acceptance work
+  in the existing task/PR ledger; do not introduce duplicate trackers for every request.
+- Keep the core architecture-, stack-, host-, and tool-agnostic. Do not mandate universal
+  frameworks, arbitrary coverage percentages, broad refactors, or unavailable tools.
+- Keep SKILL.md at most 200 lines and 12,000 UTF-8 bytes. This is a local context budget,
+  not an industry standard. Use one-hop references for optional detail.
+- Maintain the minimal frontmatter profile: unquoted, single-line `name: code-max` and
+  a `description: Use when ...` scalar. The validator deliberately is not a general YAML parser.
+- Mirror behavioral promises, dependencies, CLI changes, and limitations in README.md.
+  Update this ownership map or scoped guidance when responsibilities change.
+- Preserve the instruction-only consumption path. Optional tooling uses Python 3.10+
+  standard library and Bash; no pip/npm dependencies, network calls, or package manifests.
+  Do not turn installation into execution hooks or automatically modify host permissions.
+- Tests are required for executable behavior changes. Use temporary HOME and explicit
+  targets; never test installation against the developer's real agent directories.
+- Report every discovered bug with evidence and disposition. Fix in-scope defects; record
+  other findings without hiding them or silently expanding scope.
+- Make small, coherent, reviewable commits. Stage exact paths and inspect the staged diff.
+  Work on a branch and open a PR. Respect the existing required `docs` status context;
+  do not bypass branch protection or claim a remote check passed without observing it.
 
-## Verifying
+## Verification
 
 ```bash
-shellcheck skills.sh          # lint (local only, not in CI)
-head -1 SKILL.md              # must be ---
-./skills.sh                   # idempotent; re-running must not break existing symlinks
+python3 scripts/validate.py
+python3 -m unittest discover -s tests -v
+bash -n skills.sh
+shellcheck skills.sh
 ```
 
-CI (`.github/workflows/ci.yml`) checks the docs only: `SKILL.md` frontmatter and that links in `README.md` / `AGENTS.md` resolve. There are no test suites here — keep it that way.
-
-## Contributing flow
-
-`main` is protected: force-pushes and deletions are blocked, history is linear, and CI must pass. Work on a branch, open a PR, let `docs` go green, then squash-merge.
+Read [evals/README.md](evals/README.md) for behavioral evaluation. Utility tests and
+scenario-schema validation do not prove model compliance. Report model evaluations,
+platform checks, lint, and reviews as unrun when they were unavailable.
