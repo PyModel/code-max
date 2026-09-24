@@ -89,8 +89,8 @@ unvalidated; the no-dependency Markdown consumption path does not require the in
 
 For repository rollout, use a review branch and the protected-main PR workflow. Since
 2026-09-24 `main` requires a pull request, the `docs` status check on an up-to-date branch,
-linear history, and resolved conversations, and these rules apply to administrators too, so
-direct pushes and force-pushes are rejected. Required approvals are 0 while the repository
+linear history, and resolved conversations. Force-pushes and deletion are rejected for
+everyone; the repository administrator may bypass the other rules and push directly. Required approvals are 0 while the repository
 has a single maintainer, because GitHub does not let authors approve their own PRs; raise
 the count when a second reviewer exists. Keep the docs status context stable, run CI, inspect the final diff, and merge only under
 repository policy. No deployment or database migration is needed. Revert the merged change
