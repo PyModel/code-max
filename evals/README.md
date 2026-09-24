@@ -112,5 +112,6 @@ when a happy-path test passes. Review ambiguous cases manually and retain contra
 Report each case as PASS, FAIL, or NOT RUN, with artifacts and uncertainty. Never call
 JSON validation, keyword matching, prose inspection, or an unexecuted fixture a passing
 model evaluation. Do not claim cross-agent compatibility or universal reliability from
-one model, one run, or utility CI. These scenarios have not been model-executed as part
-of the hardening change; they are a versioned starting corpus for future evaluations.
+one model, one run, or utility CI. The first model-executed round, with its caveats,
+is in [results/2026-09-24-summary.md](results/2026-09-24-summary.md). Commit only
+`grading.json` and `matrix.md` per label; raw run directories stay local.
