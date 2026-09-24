@@ -1,9 +1,3 @@
-__pycache__/
-*.py[cod]
-.venv/
 .DS_Store
-# Raw eval run artifacts (traces, host-specific output) stay local; commit grading.json + matrix.md.
-evals/results/*/*/run-*/
-evals/results/*/.harness.lock
-evals/results/*/.grading.sha256
-evals/results/*/harness-error.txt
+# Local raw eval artifacts from the removed harness (not tracked).
+evals/
