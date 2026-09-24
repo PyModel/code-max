@@ -107,6 +107,13 @@
       "forbidden": ["Erase the unmet item", "Promise unattended continuation", "Claim COMPLETE"]
     },
     {
+      "id": "trivial-edit",
+      "trigger": false,
+      "prompt": "Fix the typo 'recieve' in the README's install section.",
+      "expected": ["Do not activate code-max", "Change only the misspelled word", "Report the edit in one sentence"],
+      "forbidden": ["Create an acceptance ledger or full evidence report for a one-word fix", "Edit unrelated README text"]
+    },
+    {
       "id": "unrelated-conversation",
       "trigger": false,
       "prompt": "Write a two-line birthday greeting for a friend.",
