@@ -34,7 +34,7 @@ or adopted as evidence for this change.
 | Outcome | Implementation | Evidence / limit |
 | --- | --- | --- |
 | Architecture-neutral rigor | SKILL.md and one-hop references | Source review and context budget; no universal model-compliance claim. |
-| Non-destructive installation | Optional Python standard-library helper; Bash compatibility entry | Temporary-HOME regression tests; trusted user-owned directories required. |
+| Non-destructive installation | Optional Python standard-library helper; Bash entry point | Temporary-HOME regression tests; trusted user-owned directories required. |
 | Observable quality gates | Offline package validator, utility tests, required docs aggregate | Local executable checks; remote CI result must be observed separately. |
 | Honest behavioral evaluation | Versioned scenarios with expected/forbidden behavior | Scenario schema is checked; model/host runs remain NOT RUN. |
 | Safe adoption and reversal | README migration, explicit targets, dry-run, owned-link removal | No automatic migration of host settings or unrelated links. |
@@ -87,8 +87,12 @@ are resolved intentionally. This utility is not a privilege boundary or secure i
 untrusted system locations. Windows-native symlink behavior and real host discovery remain
 unvalidated; the no-dependency Markdown consumption path does not require the installer.
 
-For repository rollout, use a review branch and the existing protected-main PR workflow.
-Keep the docs status context stable, run CI, inspect the final diff, and merge only under
+For repository rollout, use a review branch and the protected-main PR workflow. Since
+2026-09-24 `main` requires a pull request, the `docs` status check on an up-to-date branch,
+linear history, and resolved conversations, and these rules apply to administrators too, so
+direct pushes and force-pushes are rejected. Required approvals are 0 while the repository
+has a single maintainer, because GitHub does not let authors approve their own PRs; raise
+the count when a second reviewer exists. Keep the docs status context stable, run CI, inspect the final diff, and merge only under
 repository policy. No deployment or database migration is needed. Revert the merged change
 through a new PR if necessary; do not rewrite history. Consumers should review updates
 before changing their checkout and select a known-good revision in a clean dedicated checkout
