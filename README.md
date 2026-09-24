@@ -17,8 +17,12 @@ contracts, risk-based quality gates, prompt defect reporting, small reviewable c
 and migration/rollback planning where relevant. It reuses existing code before writing new
 helpers, stops and reports checks that contradict the contract instead of gaming them, and
 scopes independent review to correctness so review findings do not drive over-engineering.
-The [2026-09 research round](docs/research/2026-09-24-coding-agent-enforcement.md) records
-the evidence; these rules are not yet measured by model evaluations.
+It keeps agents inside the workspace, never prints environment values or credentials, runs
+a bug reproducer red before editing, states when no independent review ran, and reports
+only check results it observed. The [2026-09 research round](docs/research/2026-09-24-coding-agent-enforcement.md)
+and the [first model evaluation](evals/results/2026-09-24-summary.md) (pi with Grok 4.7 and
+Claude Sonnet 5) record the evidence; the rules added after that evaluation are not yet
+re-measured.
 
 It adapts to the repository rather than imposing a stack, framework, microservices,
 coverage percentage, or new toolchain. [Conditional quality gates](references/quality-gates.md)
