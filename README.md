@@ -14,7 +14,11 @@ The [core protocol](SKILL.md) requires an acceptance ledger proportional to the 
 source inspection, preservation of user-owned work, cause-level fixes, and verification
 after the last relevant edit. It adds architecture discovery, explicit dependencies and
 contracts, risk-based quality gates, prompt defect reporting, small reviewable commits,
-and migration/rollback planning where relevant.
+and migration/rollback planning where relevant. It reuses existing code before writing new
+helpers, stops and reports checks that contradict the contract instead of gaming them, and
+scopes independent review to correctness so review findings do not drive over-engineering.
+The [2026-09 research round](docs/research/2026-09-24-coding-agent-enforcement.md) records
+the evidence; these rules are not yet measured by model evaluations.
 
 It adapts to the repository rather than imposing a stack, framework, microservices,
 coverage percentage, or new toolchain. [Conditional quality gates](references/quality-gates.md)

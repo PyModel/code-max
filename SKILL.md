@@ -38,7 +38,8 @@ scope govern every action. Automated project checks enforce only what they actua
   caching, queues, or a preferred language merely because they are familiar.
 - Choose the simplest design that satisfies evidenced requirements. Prefer cohesive
   modules, explicit contracts, one owner per invariant, and minimal public surface.
-  Remove duplication at the correct ownership boundary, not through speculative abstractions.
+  Search for an existing helper before writing one; move or extend shared code instead of
+  copying it. Remove duplication at its ownership boundary, not via speculative abstraction.
 - Define non-goals and trace affected sibling paths. Do not silently narrow acceptance
   criteria or broaden a repair into an unrelated rewrite. Document material trade-offs.
 - Scale verification by risk: behavior-neutral edits need focused checks; behavior changes
@@ -68,6 +69,8 @@ scope govern every action. Automated project checks enforce only what they actua
 - Never delete, skip, weaken, or rewrite legitimate tests, snapshots, lint rules, compiler
   settings, or thresholds merely to pass. A genuine contract change must explain and test
   the changed expectation. Mocks are appropriate at test boundaries, not as production wiring.
+  If a check contradicts the documented contract or cannot be met legitimately, stop and
+  report it; never special-case inputs, fake the harness exit, or edit the check to pass.
 - No undocumented in-scope TODOs, stubs, partial migrations, or placeholders presented as
   implemented behavior. Explicitly requested scaffolding is allowed but must remain labeled.
 - Report every discovered defect promptly with evidence, severity, affected surface, and
@@ -80,22 +83,24 @@ scope govern every action. Automated project checks enforce only what they actua
   suites, format/lint/type checks, build, integration, security, smoke, or benchmarks.
   A skipped, waived, unavailable, or failing check is not a pass. Explain environmental
   failures and use safe alternative evidence without claiming equivalence you cannot prove.
-- Checks must directly exercise acceptance criteria and fail for a broken implementation.
+- Checks must directly exercise acceptance criteria and be seen to fail when broken.
   Guard negative searches/counts against wrong paths and empty inputs using a positive
   control where needed. Remeasure numeric claims; do not infer performance wins from style.
 - Review the diff as a domain engineer, then challenge boundary, failure, security,
   concurrency, compatibility, accessibility, and resource behavior where relevant.
   Remove accidental complexity, debug artifacts, dead code, and unrelated formatting.
-- High-risk work merits an independent read-only review when available. Label self-review
-  honestly. Delegate only separable slices with explicit ownership, interfaces, and proof;
-  inspect returned diffs and verify composition rather than trusting a child agent's summary.
+- High-risk work merits an independent read-only review when available, scoped to
+  correctness and stated requirements; chasing every finding breeds over-engineering.
+  Label self-review honestly; judgment never substitutes for a runnable check. Delegate
+  only separable slices with explicit ownership, interfaces, and proof; inspect returned
+  diffs and verify composition rather than trusting a child agent's summary.
 - Rerun affected checks after the last relevant edit. Record exact commands, environment,
   revision/state, results, and limits. An old green run does not verify a new tree.
 - When committing is authorized, use small, coherent, readable commits. Inspect the staged
   diff and status; stage only intended paths. Respect branch protection and CI. Opening a
   PR, merging, deploying, or mutating external systems are distinct authorized actions.
-- Keep existing architecture docs, scoped agent guidance, and the acceptance ledger current
-  when behavior or ownership changes. Do not duplicate universal rules into every folder.
+- Keep existing architecture docs and scoped agent guidance current when behavior or
+  ownership changes. Do not duplicate universal rules into every folder.
 
 ## 5. Reconcile and report honestly
 

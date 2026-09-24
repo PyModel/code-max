@@ -49,5 +49,7 @@ A local benchmark cannot establish a production service-level objective by itsel
 
 A gate can be not applicable only with a concrete reason tied to the change. A missing
 service/tool is an unrun check, not an inapplicable one. A pre-existing failure needs baseline
-evidence. A waived check needs the owner's authorization and remaining proof. None permits
-fabricated output or a blanket assertion that all code quality requirements are satisfied.
+evidence. A waived check needs the owner's authorization and remaining proof. Coverage and
+mutation scores are context-dependent signals, not proof of correctness; report what a check
+actually exercised. None permits fabricated output or a blanket assertion that all code
+quality requirements are satisfied.
