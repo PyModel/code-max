@@ -92,6 +92,19 @@ class InstallerTests(unittest.TestCase):
         self.assertNotEqual(self.run_cli("--target", str(self.target), "--uninstall").returncode, 0)
         self.assertEqual(self.dest.resolve(), self.home)
 
+    def test_uninstall_skips_foreign_entry_and_removes_owned_links(self):
+        other = self.home / "other skills"
+        self.assertEqual(self.run_cli("--target", str(self.target)).returncode, 0)
+        other.mkdir()
+        (other / "code-max").symlink_to(self.home)
+        result = self.run_cli("--target", str(self.target), "--target", str(other), "--uninstall")
+        self.assertEqual(result.returncode, 1)
+        self.assertFalse(os.path.lexists(self.dest))
+        self.assertIn("removed:", result.stdout)
+        self.assertIn(f"conflict: {other / 'code-max'}", result.stderr)
+        self.assertNotIn("choose another target", result.stderr)
+        self.assertEqual((other / "code-max").resolve(), self.home)
+
     def test_relative_owned_link_is_idempotent(self):
         self.target.mkdir()
         self.dest.symlink_to(os.path.relpath(self.source, self.target))

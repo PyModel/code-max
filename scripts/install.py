@@ -44,9 +44,13 @@ def owned_link(path: Path, source: Path) -> bool:
     return path.is_symlink() and path.resolve() == source
 
 
+def foreign(path: Path, source: Path) -> bool:
+    # lexists includes dangling links, which must never be overwritten or removed.
+    return os.path.lexists(path) and not owned_link(path, source)
+
+
 def check_destination(path: Path, source: Path) -> None:
-    # lexists includes dangling links, which must never be overwritten.
-    if os.path.lexists(path) and not owned_link(path, source):
+    if foreign(path, source):
         raise ValidationError(f"conflict: {path}; preserve it and choose another target")
     parent = path.parent
     while not os.path.lexists(parent):
@@ -55,7 +59,8 @@ def check_destination(path: Path, source: Path) -> None:
         raise ValidationError(f"target ancestor is not a directory: {parent}")
 
 
-def install(source: Path, targets: list[Path], *, dry_run: bool, uninstall: bool) -> None:
+def install(source: Path, targets: list[Path], *, dry_run: bool, uninstall: bool) -> list[Path]:
+    """Return entries skipped by uninstall because this checkout does not own them."""
     name = read_metadata(source / "SKILL.md")["name"]
     if name != "code-max":
         raise ValidationError("this installer requires the code-max skill")
@@ -67,8 +72,15 @@ def install(source: Path, targets: list[Path], *, dry_run: bool, uninstall: bool
         # Installing inside the source creates a recursive skill tree.
         if destination == source or source in destination.parents:
             raise ValidationError(f"target is inside the skill source: {destination}")
-        check_destination(destination, source)
+        if not uninstall:
+            check_destination(destination, source)
+    skipped = []
     for destination in destinations:
+        if uninstall and foreign(destination, source):
+            # Uninstall never deletes a foreign entry, but owned links elsewhere still go.
+            print(f"conflict: {destination} is not a link to this checkout; left in place", file=sys.stderr, flush=True)
+            skipped.append(destination)
+            continue
         # Recheck immediately before mutation; symlink creation itself is exclusive.
         check_destination(destination, source)
         linked = owned_link(destination, source)
@@ -88,6 +100,7 @@ def install(source: Path, targets: list[Path], *, dry_run: bool, uninstall: bool
             # Unlike ln -sfn, this cannot replace a file or nest inside a directory.
             destination.symlink_to(source, target_is_directory=True)
             print(f"linked: {destination} -> {source}", flush=True)
+    return skipped
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -111,10 +124,14 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("select --agent, --target, or --all; no files were changed")
     try:
         targets = target_paths(list(TARGETS) if args.all else args.agent, args.target)
-        install(Path(__file__).resolve().parents[1], targets,
-                dry_run=args.dry_run, uninstall=args.uninstall)
+        skipped = install(Path(__file__).resolve().parents[1], targets,
+                          dry_run=args.dry_run, uninstall=args.uninstall)
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}\nNo conflicting entry was replaced. Earlier reported operations may have completed; inspect before retrying.", file=sys.stderr)
+        return 1
+    if skipped:
+        print(f"error: {len(skipped)} foreign entr{'y' if len(skipped) == 1 else 'ies'} preserved; "
+              "inspect and remove manually only if you own them.", file=sys.stderr)
         return 1
     return 0
 

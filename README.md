@@ -60,7 +60,9 @@ directory**, not the final code-max path:
 
 `python3 scripts/install.py` accepts the same options without the Bash wrapper.
 With no target selection the installer exits without changing anything. `--all` explicitly
-selects all presets; it does not detect installed agents. Hosts that read multiple shared
+selects all presets; it does not detect installed agents. Uninstall removes links to
+this checkout in every selected target, reports any foreign entry as a preserved conflict,
+and then exits nonzero. Hosts that read multiple shared
 locations may show duplicates, so prefer selecting a single appropriate location.
 
 | Preset | Destination |
