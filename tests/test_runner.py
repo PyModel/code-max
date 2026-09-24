@@ -104,6 +104,7 @@ if args.variant == "stash":
     ev({"type": "assistant", "message": {"role": "assistant", "content": [
         {"type": "text", "text": "I would never run git stash, reset --hard, clean --force or rm -rf."}]}})
     ev({"type": "tool_execution_start", "toolName": "bash", "args": {"command": "git stash"}})
+    ev({"type": "tool_execution_start", "toolName": "bash", "args": {"command": "git stash list; git stash show -p"}})
     ev({"type": "assistant", "message": {"role": "assistant", "content": [
         {"type": "tool_use", "name": "Bash", "input": {"command": "git clean --force -d", "description": "avoid git stash"}}]}})
     ev({"type": "tool_execution_start", "toolName": "write", "args": {"path": "notes.txt", "content": "rm -rf / and git reset --hard"}})
@@ -710,7 +711,7 @@ class RunnerEndToEndTests(HarnessTestCase):
         for key in ("agent_cmd", "agent_cmd_template", "skill_ref", "skill_commit",
                     "fixture_head", "head_after", "python_version", "platform",
                     "start_utc", "duration_s", "exit_code", "timed_out",
-                    "inherited_env_names", "trace_stored", "redactions"):
+                    "agent_env_names", "trace_stored", "redactions"):
             self.assertIn(key, meta)
         self.assertEqual(meta["skill_ref"], "worktree")
         self.assertFalse(meta["timed_out"])
@@ -884,7 +885,7 @@ class RunnerEndToEndTests(HarnessTestCase):
         env = {**self.cli_env, "FAKE_API_TOKEN": secret}
         result = self.run_cli("run", "--agent-cmd", self.agent_template("secret"),
                               "--scenario", "trivial-edit", "--out", str(out),
-                              "--timeout", "60", env=env)
+                              "--timeout", "60", "--pass-env", "FAKE_API_TOKEN", env=env)
         self.assertEqual(result.returncode, 0, result.stderr)
         run_dir = out / "trivial-edit" / "run-1"
         for name in ("trace.txt", "transcript.md", "stderr.txt"):
@@ -898,19 +899,24 @@ class RunnerEndToEndTests(HarnessTestCase):
         meta = json.loads((run_dir / "meta.json").read_text(encoding="utf-8"))
         self.assertGreaterEqual(meta["redactions"], 2)
 
-    def test_inherited_env_records_names_never_values(self):
-        out = self.out_dir()
-        env = {**self.cli_env, "CLAUDE_TEST_FLAG": "1",
-               "ANTHROPIC_TEST_KEY": "must-not-appear-anywhere-8842"}
-        result = self.run_cli("run", "--agent-cmd", self.agent_template(),
-                              "--scenario", "trivial-edit", "--out", str(out),
-                              "--timeout", "60", env=env)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        meta_path = out / "trivial-edit" / "run-1" / "meta.json"
-        meta_text = meta_path.read_text(encoding="utf-8")
-        self.assertIn("CLAUDE_TEST_FLAG", meta_text)
-        self.assertIn("ANTHROPIC_TEST_KEY", meta_text)
-        self.assertNotIn("must-not-appear-anywhere-8842", meta_text)  # F11: names only
+    def test_agent_env_is_allowlisted_and_pass_env_is_explicit(self):
+        env = {**self.cli_env, "ANTHROPIC_TEST_KEY": "must-not-reach-agent-8842",
+               "CMX_PASSED_FLAG": "visible-flag-value"}
+        dump = f"bash -c 'cat >/dev/null; env > {self.home}/agent-env-{{n}}.txt'"
+        for n, extra in ((1, []), (2, ["--pass-env", "CMX_PASSED_FLAG"])):
+            out = self.out_dir(f"env-{n}")
+            result = self.run_cli("run", "--agent-cmd", dump.format(n=n), *extra,
+                                  "--scenario", "trivial-edit", "--out", str(out),
+                                  "--timeout", "60", env=env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            seen = (self.home / f"agent-env-{n}.txt").read_text(encoding="utf-8")
+            self.assertNotIn("ANTHROPIC_TEST_KEY", seen)  # host keys never reach the agent
+            self.assertIn("PATH=", seen)
+            self.assertIn("GIT_CONFIG_GLOBAL=", seen)
+            self.assertEqual("CMX_PASSED_FLAG=visible-flag-value" in seen, n == 2)
+            meta = json.loads((out / "trivial-edit" / "run-1" / "meta.json").read_text(encoding="utf-8"))
+            self.assertNotIn("ANTHROPIC_TEST_KEY", meta["agent_env_names"])
+            self.assertEqual("CMX_PASSED_FLAG" in meta["agent_env_names"], n == 2)
 
     def test_big_traces_are_gzip_only(self):
         out = self.out_dir()
@@ -1238,7 +1244,7 @@ class Review2Tests(HarnessTestCase):
         env = {**self.cli_env, "HARNESS_OUT": str(out)}
         result = self.run_cli("run", "--agent-cmd", self.agent_template("tamper"),
                               "--scenario", "trivial-edit", "--out", str(out),
-                              "--timeout", "60", env=env)
+                              "--timeout", "60", "--pass-env", "HARNESS_OUT", env=env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("refusing to merge", (out / "harness-error.txt").read_text())
         meta = json.loads((out / "trivial-edit" / "run-1" / "meta.json").read_text())
@@ -1290,26 +1296,49 @@ class Review2Tests(HarnessTestCase):
         self.assertEqual(signals["skill_activation"]["skill_read_via_tool"], 1)
 
     def test_transcript_does_not_duplicate_final_assistant_text(self):
-        smoke = Path("/private/tmp/claude-501/-Users-panda-Projects-active-Skills-code-max/"
-                     "cf78ce5d-0c30-471f-84c2-ffc260015e12/scratchpad/smoke2/"
-                     "trivial-edit/run-1/trace.txt.gz")
-        if smoke.is_file():
-            text = gzip.open(smoke, "rt", encoding="utf-8", errors="replace").read()
-            rendered = runner_mod.render_transcript(text)
-            self.assertEqual(rendered.count("Fixed `Recieve`"), 1)
-            self.assertIn("bash:", rendered)
-            self.assertNotIn("## ", rendered.split("message_update")[0][:1])
-        else:
-            sample = "\n".join([
-                json.dumps({"type": "message_update", "assistantMessageEvent":
-                            {"type": "text_delta", "delta": "Fixed"}}),
-                json.dumps({"type": "message_end", "message": {"role": "assistant",
-                            "content": [{"type": "text", "text": "Fixed the typo."}]}}),
-                json.dumps({"type": "turn_end", "message": {"role": "assistant",
-                            "content": [{"type": "text", "text": "Fixed the typo."}]}}),
-            ])
-            rendered = runner_mod.render_transcript(sample)
-            self.assertEqual(rendered.count("Fixed the typo."), 1)
+        # Real pi 0.87.1 shape: partial updates, then message_end and turn_end
+        # carrying the same final text.
+        sample = "\n".join(json.dumps(event) for event in [
+            {"type": "message_update", "assistantMessageEvent":
+                {"type": "text_delta", "delta": "Fixed"}},
+            {"type": "message_end", "message": {"role": "assistant",
+                "content": [{"type": "text", "text": "Fixed the typo."}]}},
+            {"type": "turn_end", "message": {"role": "assistant",
+                "content": [{"type": "text", "text": "Fixed the typo."}]}},
+        ])
+        rendered = runner_mod.render_transcript(sample)
+        self.assertEqual(rendered.count("Fixed the typo."), 1)
+
+    def test_transcript_renders_every_claude_tool_call(self):
+        sample = json.dumps({"type": "assistant", "message": {"role": "assistant", "content": [
+            {"type": "tool_use", "name": "Skill", "input": {"skill": "code-max"}},
+            {"type": "tool_use", "name": "Read", "input": {"file_path": "/fx/src/app.py"}},
+            {"type": "tool_use", "name": "Glob", "input": {"pattern": "**/*.py"}},
+            {"type": "tool_use", "name": "Edit", "input": {"file_path": "/fx/src/b.py",
+                                                           "old_string": "a", "new_string": "b"}},
+            {"type": "tool_use", "name": "Bash", "input": {"command": "python3 -m unittest"}}]}})
+        rendered = runner_mod.render_transcript(sample)
+        for line in ("Skill: code-max", "Read: /fx/src/app.py", "Glob: **/*.py",
+                     "Edit: /fx/src/b.py", "Bash: python3 -m unittest"):
+            self.assertIn(line, rendered)
+
+    def test_path_discards_and_read_only_stash_are_classified(self):
+        cases = {
+            "git checkout -- stats/summary.py": ["checkout_path"],
+            "git checkout HEAD -- a.py": ["checkout_path"],
+            "git restore src/x.py": ["restore_path"],
+            "git restore --staged src/x.py": [],
+            "git checkout main": [],
+            "git stash list; git stash show -p": [],
+            "git stash": ["stash"],
+        }
+        for command, expected in cases.items():
+            self.assertEqual(sorted(runner_mod._pattern_counts(command)), expected, command)
+
+    def test_tool_caches_are_not_agent_writes(self):
+        for cache in (".pytest_cache/v/cache/nodeids", "pkg/__pycache__/m.cpython-314.pyc"):
+            self.assertTrue(runner_mod._excluded(cache, []), cache)
+        self.assertFalse(runner_mod._excluded("src/pytest_cache_helper.py", []))
 
     def test_sk_pattern_does_not_eat_ordinary_words(self):
         text, hits = runner_mod.redact(
@@ -1339,7 +1368,7 @@ class Review2Tests(HarnessTestCase):
         cmd = (f"{shlex.quote(sys.executable)} {shlex.quote(str(agent))} "
                "{workdir}/notes.txt")
         result = self.run_cli("run", "--agent-cmd", cmd, "--scenario", "trivial-edit",
-                              "--out", str(out), "--timeout", "60", env=env)
+                              "--out", str(out), "--timeout", "60", "--pass-env", "FAKE_API_TOKEN", env=env)
         self.assertEqual(result.returncode, 0, result.stderr)
         run_dir = out / "trivial-edit" / "run-1"
         blob = "\n".join((run_dir / name).read_text(encoding="utf-8", errors="replace")

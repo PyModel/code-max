@@ -120,6 +120,16 @@ class ValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "broken link"):
             check_links(doc, self.root)
 
+    def test_raw_eval_run_artifacts_are_not_link_checked(self):
+        raw = self.root / "evals/results/2026-01-01-x/some-scenario/run-1/transcript.md"
+        raw.parent.mkdir(parents=True)
+        raw.write_text("[agent quoted](references/missing.md)")
+        validate(self.root)
+        summary = self.root / "evals/results/2026-01-01-x/matrix.md"
+        summary.write_text("[broken](missing.md)")
+        with self.assertRaisesRegex(ValidationError, "broken link"):
+            validate(self.root)
+
     def test_scenario_schema_negative_controls(self):
         invalid = [[], {}, {"version": True, "scenarios": [CASE]},
                    {"version": 1, "scenarios": []},

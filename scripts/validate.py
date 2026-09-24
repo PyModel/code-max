@@ -94,6 +94,13 @@ def walk_error(error: OSError) -> None:
     raise error
 
 
+def is_raw_eval_run(path: Path, root: Path) -> bool:
+    """Raw eval run artifacts (untracked agent transcripts) are evidence, not docs."""
+    relative = path.relative_to(root).parts
+    return (len(relative) == 5 and relative[:2] == ("evals", "results")
+            and re.fullmatch(r"run-\d+", relative[-1]) is not None)
+
+
 def validate(root: Path) -> tuple[int, int]:
     root = root.resolve(strict=True)
     for relative in REQUIRED:
@@ -106,7 +113,8 @@ def validate(root: Path) -> tuple[int, int]:
         raise ValidationError("SKILL.md exceeds the 200-line / 12000-byte context budget")
     count = 0
     for directory, dirs, files in os.walk(root, followlinks=False, onerror=walk_error):
-        dirs[:] = sorted(name for name in dirs if name not in {".git", "__pycache__", ".venv"})
+        dirs[:] = sorted(name for name in dirs if name not in {".git", "__pycache__", ".venv"}
+                         and not is_raw_eval_run(Path(directory) / name, root))
         for name in sorted(dirs + files):
             path = Path(directory) / name
             if path.is_symlink():

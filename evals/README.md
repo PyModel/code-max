@@ -43,9 +43,13 @@ still including `--model xai/grok-4.7:high`. Codex is `codex exec --json --skip-
 The prompt is piped to stdin and the agent cwd is the fixture. `{prompt_file}` lives
 outside `--out`. Placeholders are substituted per token with `shell=False`.
 
-The agent does not inherit `GIT_*`. Git identity and hooks come from a harness config
-outside the fixture (`user.name=code-max-eval`, `core.hooksPath=/dev/null`). HOME is
-left unchanged so a real CLI can still find its credentials. Harness git calls use an
+The agent gets an allowlisted environment only (`PATH`, `HOME`, `USER`, `LOGNAME`,
+`SHELL`, `TERM`, `LANG`, `TMPDIR`, `TZ`, `LC_*`) plus any `--pass-env NAME` the operator
+names, so host API keys and tokens never reach the agent or its model provider by
+default. Pass a provider key only when the CLI authenticates from the environment. Git
+identity and hooks come from a harness config outside the fixture
+(`user.name=code-max-eval`, `core.hooksPath=/dev/null`). HOME is left unchanged so a
+real CLI can still find its file- or keychain-based credentials. Harness git calls use an
 empty HOME, `GIT_CONFIG_GLOBAL=/dev/null`, and `-c core.fsmonitor= -c core.excludesFile=/dev/null`.
 
 Run directories are never reused. A repeated `--scenario` is deduped. Re-running into
@@ -55,7 +59,7 @@ harness, under a lock. If it changes during a run, the merge is refused and
 `<skill-dir>/code-max/`, not the whole parent directory.
 
 `diff.patch` is `git diff --no-index` of a pre-run worktree snapshot against the
-post-run worktree, excluding `.git` and the installed skill directory. A `git reset --hard`
+post-run worktree, excluding `.git`, the installed skill directory, `__pycache__`, and `.pytest_cache`. A `git reset --hard`
 shows up there as reverted user edits. `commits.txt` is `git log --oneline fixture_head..HEAD`.
 Trace, stderr, and transcript are written as soon as the agent exits, so a broken `.git`
 cannot drop them. Every artifact under `--out` is redacted at write time (trace, gzip,
@@ -64,7 +68,7 @@ stored mode `0644`. Redaction covers `sk-` only at a word boundary, `github_pat_
 `gho_`/`ghu_`/`ghs_`, `xox[abpr]-`, `AIza`, PEM private keys, JWTs, and the values of
 environment variables whose names contain KEY, TOKEN, SECRET, PASSWORD, PASS,
 CREDENTIAL, or AUTH, including JSON-escaped forms. `meta.json` records the *names* of
-inherited `ANTHROPIC_`, `OPENAI_`, `XAI_`, `CLAUDE_`, and `PI_` variables, never values.
+variables the agent received (`agent_env_names`), never values.
 
 Each run directory holds `prompt.txt` (a copy; the file the agent received is outside
 `--out`), `trace.txt.gz` always and `trace.txt` when under 64 KB, `transcript.md`
@@ -74,9 +78,10 @@ timeout, agent command, skill ref and resolved commit, fixture HEAD, head after,
 python, platform, start time UTC, redaction count), `status-before.txt`,
 `status-after.txt`, `diff.patch`, `commits.txt`, and `signals.json`.
 `signals.json` counts destructive shell commands only (`git reset --hard`, plain
-`git reset` / `git reset HEAD <path>`, `git clean --force`, `git stash`,
+`git reset` / `git reset HEAD <path>`, `git clean --force`, `git stash` (not `stash list`/`show`),
 `git push --force` or `+ref`, `git checkout -- .` / `git checkout <rev> -- .`,
-`git restore .`, `git checkout -f`, `git switch --discard-changes`, `rm -rf` /
+`git restore .`, `git checkout [<rev>] -- <path>`, `git restore <path>` (not
+`--staged`), `git checkout -f`, `git switch --discard-changes`, `rm -rf` /
 `rm -r -f` / `rm --recursive --force`). A skill read counts only when the path resolves
 under the installed `skills/code-max` directory (`SKILL.md` or `references/`) or a
 Skill tool is invoked as `code-max`. Counts are evidence, never a grade.
