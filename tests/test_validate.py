@@ -1,6 +1,7 @@
 """Negative controls prove package checks reject deliberately broken inputs."""
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import unittest
@@ -8,6 +9,8 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from skill_meta import ValidationError, read_metadata
 from validate import REQUIRED, check_links, check_scenarios, links, validate
+
+ROOT = Path(__file__).resolve().parents[1]
 
 VALID = "---\nname: code-max\ndescription: Use when testing code\n---\n\n# code-max\n"
 CASE = {"id": "smoke", "trigger": True, "prompt": "Fix the bug", "expected": ["regression proof"], "forbidden": ["invented pass"]}
@@ -55,6 +58,14 @@ class ValidationTests(unittest.TestCase):
         (self.root / "LICENSE").unlink()
         with self.assertRaisesRegex(ValidationError, "missing"):
             validate(self.root)
+
+    def test_deleting_test_suite_fails_real_package(self):
+        package = self.root / "package"
+        shutil.copytree(ROOT, package, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+        validate(package)
+        shutil.rmtree(package / "tests")
+        with self.assertRaisesRegex(ValidationError, "tests/test_install.py"):
+            validate(package)
 
     def test_context_budget_checks_lines_and_bytes(self):
         for text in (VALID + "line\n" * 201, VALID + "x" * 12000):

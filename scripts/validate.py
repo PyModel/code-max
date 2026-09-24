@@ -17,7 +17,9 @@ from skill_meta import ValidationError, read_metadata
 REQUIRED = (
     "SKILL.md", "README.md", "AGENTS.md", "LICENSE", "skills.sh",
     "references/quality-gates.md", "references/report-template.md",
-    "scripts/install.py", "scripts/skill_meta.py", "evals/scenarios.json",
+    "scripts/install.py", "scripts/skill_meta.py", "scripts/validate.py", "evals/scenarios.json",
+    # Canaries: silently deleting the regression suite must fail validation.
+    "tests/test_install.py", "tests/test_validate.py",
 )
 
 
