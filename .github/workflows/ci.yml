@@ -1,0 +1,38 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Job id matches the required branch-protection context.
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check SKILL.md frontmatter and size
+        run: |
+          set -eu
+          test "$(head -n 1 SKILL.md)" = "---"
+          grep -qx 'name: code-max' SKILL.md
+          grep -q '^description: Use when ' SKILL.md
+          test "$(wc -l < SKILL.md)" -le 200
+      - name: Check local Markdown links
+        run: |
+          set -eu
+          fail=0
+          for f in SKILL.md README.md AGENTS.md references/*.md; do
+            dir=$(dirname "$f")
+            for link in $(grep -oE '\]\([^)#:]+' "$f" | sed 's/^](//'); do
+              [ -e "$dir/$link" ] || { echo "$f: broken link $link"; fail=1; }
+            done
+          done
+          exit "$fail"
