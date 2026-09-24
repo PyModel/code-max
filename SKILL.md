@@ -1,6 +1,6 @@
 ---
 name: code-max
-description: Use when implementing, debugging, reviewing, refactoring, hardening, or migrating code with evidence-backed acceptance criteria, regression protection, and an honest completion report. Adapt engineering rigor to any language, architecture, repository size, and available toolchain without imposing a framework or hiding incomplete work.
+description: Use when implementing, debugging, reviewing, refactoring, hardening, or migrating code where correctness matters, such as multi-step changes, regressions, data or API migrations, and security or trust boundaries. Enforces evidence-backed acceptance criteria, regression protection, clean minimal diffs, and an honest completion report in any language or toolchain. Skip trivial edits such as typo fixes or one-line cosmetic changes.
 ---
 
 # code-max

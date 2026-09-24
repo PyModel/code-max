@@ -105,7 +105,7 @@ good revision in a clean dedicated checkout; do not reset user-owned changes. Se
 
 ## Use
 
-Ask your host to use code-max for the task, for example:
+Ask your host to use code-max for substantial or correctness-sensitive work, for example:
 
 ```text
 Use code-max to fix the token refresh race. Preserve existing APIs and user changes.
@@ -114,6 +114,7 @@ Use code-max for a read-only architecture review. Do not edit or publish anythin
 
 Use the project's existing test commands, CI, review process, and task tracker. The skill
 does not automatically add hooks, copy AGENTS.md into other projects, or execute helpers.
+Its description tells hosts to skip trivial edits such as typo fixes or one-line cosmetic changes.
 
 ## Contributing and validation
 
