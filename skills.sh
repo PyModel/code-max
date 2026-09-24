@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compatibility entry point; installation is optional and never runs with the skill.
+# Bash entry point for scripts/install.py; installation is optional and never runs with the skill.
 set -euo pipefail
 command -v python3 >/dev/null 2>&1 || {
   printf '%s\n' 'error: optional installer requires Python 3.10+ (python3)' >&2

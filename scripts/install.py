@@ -62,8 +62,6 @@ def check_destination(path: Path, source: Path) -> None:
 def install(source: Path, targets: list[Path], *, dry_run: bool, uninstall: bool) -> list[Path]:
     """Return entries skipped by uninstall because this checkout does not own them."""
     name = read_metadata(source / "SKILL.md")["name"]
-    if name != "code-max":
-        raise ValidationError("this installer requires the code-max skill")
     destinations = [parent / name for parent in targets]
     selected = set(destinations)
     for destination in destinations:

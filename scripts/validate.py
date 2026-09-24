@@ -100,9 +100,7 @@ def validate(root: Path) -> tuple[int, int]:
         path = root / relative
         if not path.is_file() or not path.resolve().is_relative_to(root):
             raise ValidationError(f"missing or unsafe required file: {relative}")
-    metadata = read_metadata(root / "SKILL.md")
-    if metadata["name"] != "code-max":
-        raise ValidationError("this package must retain name: code-max")
+    read_metadata(root / "SKILL.md")
     text = (root / "SKILL.md").read_text(encoding="utf-8")
     if len(text.splitlines()) > 200 or len(text.encode("utf-8")) > 12000:
         raise ValidationError("SKILL.md exceeds the 200-line / 12000-byte context budget")

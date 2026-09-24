@@ -1,6 +1,7 @@
 """Read this repository's deliberately small, dependency-free metadata profile."""
 from pathlib import Path
-import re
+
+SKILL_NAME = "code-max"
 
 
 class ValidationError(ValueError):
@@ -27,10 +28,8 @@ def read_metadata(path: Path) -> dict[str, str]:
         fields[key] = value
     if set(fields) != {"name", "description"}:
         raise ValidationError("frontmatter requires name and description")
-    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", fields["name"]):
-        raise ValidationError("invalid skill name")
-    if not 1 <= len(fields["name"]) <= 64:
-        raise ValidationError("skill name exceeds 64 characters")
+    if fields["name"] != SKILL_NAME:
+        raise ValidationError(f"skill name must be {SKILL_NAME}")
     if not fields["description"].startswith("Use when ") or not 10 <= len(fields["description"]) <= 1024:
         raise ValidationError("description must start with Use when and fit 1024 characters")
     if not any(line.strip() for line in lines[end + 1:]):

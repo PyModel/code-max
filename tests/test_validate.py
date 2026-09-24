@@ -41,6 +41,7 @@ class ValidationTests(unittest.TestCase):
                  VALID.replace("name: code-max", "name: Bad_Name"),
                  VALID.replace("name: code-max", "name: bad--name"),
                  VALID.replace("name: code-max", "name: " + "a" * 65),
+                 VALID.replace("name: code-max", "name: other-skill"),
                  VALID.replace("description: Use when testing code", "description: Use when " + "x" * 1024),
                  VALID.replace("description: Use when testing code\n", ""),
                  VALID.replace("Use when testing code", "Use when testing: code"),
