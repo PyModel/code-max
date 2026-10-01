@@ -19,6 +19,9 @@ the risk, and an honest `COMPLETE` / `PARTIAL` / `BLOCKED` report.
   to the matching step.
 - **Evidence scaled to risk.** Pre-fix evidence, recorded commands, and independent review
   scale with the mode. A skipped or unavailable check never counts as a pass.
+- **Design rules.** Seven rule groups for the code the agent writes (ownership, boundaries,
+  effects, failure, dependencies, change surface, tests) with a priority order for when
+  they conflict, and review questions to answer against non-trivial diffs.
 - **References on demand.** [Quality gates](references/quality-gates.md) for affected
   domains and a [report template](references/report-template.md) for non-trivial work.
 

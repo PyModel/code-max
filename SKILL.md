@@ -56,7 +56,8 @@ deterministic reproducer or directly observed failure. Never fabricate a red run
 
 **Implement.** Fix the invariant at the smallest correct shared layer. Infer architecture
 from the code and reuse its conventions and helpers; do not impose patterns because they
-are familiar. Wire every required path: unused helpers and fake success paths are not
+are familiar, and apply the design rules in section 3 to the code you add. Wire every
+required path: unused helpers and fake success paths are not
 delivery. Validate untrusted input at boundaries and make failure explicit; never swallow
 errors, fabricate data, or weaken authorization. Preserve compatibility unless the change
 is meant to break it. Regenerate derived files with project tooling. Add a dependency only
@@ -82,10 +83,61 @@ correctness when available, without blocking required work; its absence is a rep
 limitation, not by itself a reason for `PARTIAL`. Self-review, including of a child agent's
 work, is not independent. Rerun affected checks after the last relevant edit; an old green
 run does not verify a new tree. When available, load
-[quality gates](references/quality-gates.md) only for affected domains; if a reference is
+[quality gates](references/quality-gates.md) only for affected domains, and for Substantial
+work and above answer its review questions against the final diff; if a reference is
 missing, use this protocol and note it only when it materially reduces verification.
 
-## 3. Safety
+## 3. Design
+
+Rules for the code you write, applied within the repository's own structure. The test for
+every addition: am I adding code, or a new place future readers must understand?
+
+- **Ownership.** One coherent responsibility per function, class, and module, named after
+  the concept it owns. Every rule (threshold, validation, mapping, permission, option
+  list, formula, schema, retry policy) has one authoritative owner: duplicated code is
+  tolerable, duplicated rules are defects. Keep policy (what should happen) apart from
+  mechanism (how it happens).
+- **Boundaries.** Parse, validate, and normalize once where data crosses a network, file,
+  database, process, trust, or serialization boundary, then pass a typed canonical value
+  inward. Choose types that make invalid states unrepresentable: one status enum over
+  several booleans. Model lifecycles as explicit state machines with named transitions.
+- **Effects.** Compute first, mutate second. For consequential operations, prepare →
+  validate → commit, with the irreversible step as small as possible. Side effects show in
+  names and signatures. Every resource has an owner whose cleanup runs on success,
+  exception, cancellation, timeout, and partial initialization.
+- **Failure.** Every external call has a deliberate timeout. Bound anything that grows:
+  retries, queues, concurrency, input and payload size, batches, recursion, caches,
+  request duration, log volume. Retry only transient failures (timeout, rate limit,
+  unavailable), never permanent ones (invalid input, authorization, violated invariant),
+  and make retried operations idempotent. Errors carry what failed, where, on which
+  input, whether retry is appropriate, and the cause; expected outcomes are values,
+  exceptions are for the exceptional.
+- **Dependencies.** Pass volatile dependencies in (clock, randomness, identifiers,
+  filesystem, network, database, providers) instead of reading globals. Keep interfaces
+  smaller than implementations and translate provider-specific details at the owning
+  boundary. An abstraction earns its place by removing knowledge from callers; otherwise
+  delete it. Generalize recurring concepts, not hypothetical requirements: one focused
+  module beats a configurable internal framework.
+- **Change surface.** One feature touches few places: a new provider adds an
+  implementation, a new status adds an enum member. Name constants beside the policy that
+  owns them; use enums for closed domains, keyword arguments over positional booleans, and
+  tables when behavior varies only by configuration. Comments explain why: constraints,
+  tradeoffs, external requirements. Consolidate overlapping implementations and give every
+  compatibility layer a deletion condition.
+- **Tests.** Capture existing behavior before restructuring; change behavior in a separate
+  step. Test observable behavior over private internals. Test boundaries (invalid,
+  malformed, empty, maximum, timeout, cancellation, duplicate execution, partial failure,
+  missing resource, permission failure, concurrent access) and invariants (balance never
+  negative, path never escapes root, completed job never reruns, duplicate request yields
+  one effect, resource always released). Control clocks, randomness, identifiers, and
+  external services so tests fail only when code is wrong, through the same architecture
+  production uses.
+
+When rules conflict: correctness → explicit invariants → clear ownership → controlled side
+effects → bounded resources → failure safety → locality → replaceability → extensibility →
+optimization.
+
+## 4. Safety
 
 - Stay inside the workspace and task scope. Never print environment values, credentials,
   or secret files; check a variable's presence, not its value.
@@ -96,7 +148,7 @@ missing, use this protocol and note it only when it materially reduces verificat
 - Commit, push, open a PR, merge, and deploy are separate permissions. When committing,
   stage exact paths and inspect the staged diff.
 
-## 4. Findings and evidence
+## 5. Findings and evidence
 
 Record material defects you discover as you go. Interrupt only when one changes scope,
 safety, strategy, or completion status; otherwise list it in the report with a next action.
@@ -108,7 +160,7 @@ Keep enough evidence to reproduce each material claim. For performance, migratio
 security, or environment-dependent results, record exact commands, environment, and
 revision. Report only results you observed.
 
-## 5. Report
+## 6. Report
 
 | Status | Meaning |
 | --- | --- |
