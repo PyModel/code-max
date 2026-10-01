@@ -6,15 +6,15 @@ Apply only the rows the change touches. Use the repository's own commands. A gat
 | Surface | Requirements | Evidence |
 | --- | --- | --- |
 | Architecture | Preserve dependency direction; one owner per invariant and state transition; explicit, cohesive interfaces; no speculative abstraction. | Trace entry points and callers; check the final diff for duplicated policy or dead wiring. |
-| APIs and inputs | Validate type, size, range, encoding, ownership; preserve error semantics and compatibility; bound pagination and uploads. | Malformed, oversized, empty, and boundary inputs; consumer compatibility; unauthorized and cross-tenant access. |
+| APIs and inputs | Validate type, size, range, encoding, ownership; preserve error semantics and compatibility; keep public contracts (schemas, interfaces, event and persisted formats, command behavior) stable and version incompatible changes explicitly; bound pagination and uploads. | Malformed, oversized, empty, and boundary inputs; consumer compatibility; unauthorized and cross-tenant access. |
 | State and persistence | Atomicity, constraints, uniqueness, and concurrency control; exact representations where required. | Duplicate requests, lost updates, partial failure, recovery, realistic migration data. |
-| Concurrency | Clear ownership of shared state; atomic check-then-act; cancellation and deadlines propagate; ordering assumptions stated; operations idempotent where retried or redelivered. | Races, duplicate and out-of-order delivery, retry exhaustion, cancellation mid-operation, shutdown, deadlock. |
+| Concurrency | Clear ownership of shared state; atomic check-then-act; cancellation and deadlines propagate; ordering assumptions stated; operations idempotent where retried or redelivered; locks released before network, disk, inference, subprocess, or callback work; immutable values, message passing, and ownership transfer over shared mutable state. | Races, duplicate and out-of-order delivery, retry exhaustion, cancellation mid-operation, shutdown, deadlock. |
 | Resources | Pair acquisition with release; bound memory, files, sockets, tasks, queues, and pools. | Cleanup on error and cancel, repeated runs, leak checks. |
-| Security and privacy | Least privilege; authorize each sensitive operation; safe parsing and encoding; no embedded secrets; minimal sensitive data in logs. | Negative access tests; injection, path traversal, SSRF where relevant; log redaction. |
+| Security and privacy | Least privilege; secure defaults; authorize each sensitive operation in one central place regardless of entry interface; stronger validation on delete, overwrite, publish, and charge than on reads; safe parsing and encoding; no embedded secrets; minimal sensitive data in logs. | Negative access tests; injection, path traversal, SSRF where relevant; log redaction. |
 | UI and accessibility | Semantic controls, keyboard and focus, labels, responsive layout; loading, empty, error, success states; no duplicate destructive submits. | Component or browser tests, keyboard checks, supported viewports, accessibility tooling. |
-| Performance | Find the bottleneck before optimizing; keep correctness checks alongside speed. | Before/after on a representative workload with warmup, repetitions, variance, and comparable hardware and versions. |
+| Performance | Find the bottleneck before optimizing; algorithmic and architectural wins before micro-optimizations; optimize behind existing interfaces, with every fast path keeping a correct generic fallback; keep correctness checks alongside speed. | Before/after on a representative workload with warmup, repetitions, variance, and comparable hardware and versions. |
 | Build and supply chain | Honor pinned versions, lockfiles, generated sources, licenses; minimal dependencies and permissions. | Clean build, lockfile consistency, dependency review. |
-| Operations | Actionable config errors; defined rollout and rollback; no secrets or unbounded cardinality in telemetry. | Health checks, structured errors, metrics or traces, rollback steps. |
+| Operations | Typed configuration loaded and validated once at startup, with business logic receiving values rather than reading the environment; actionable config errors; defined rollout and rollback; structured logs and metrics designed with the feature that report decisions without determining them; no secrets or unbounded cardinality in telemetry. | Health checks, structured errors, metrics or traces, rollback steps. |
 
 ## Migration and rollback
 
@@ -28,3 +28,22 @@ credential changes, or deployments without explicit authorization.
 
 Characterize existing behavior before changing it. Map each affected package to its own
 toolchain; a green root command may not cover every package.
+
+## Review questions
+
+For Substantial work and above, answer each against the final diff:
+
+1. What responsibility changed, where does it live, and does another part of the code
+   already know the same rule?
+2. Does the change stay local, with dependencies pointing inward and no external
+   representation leaking into core logic?
+3. Which additions are policy and which are mechanism, and are they kept apart?
+4. What new invariant exists, and what invalid states are now possible?
+5. What happens on failure, timeout, cancellation, and duplicate execution?
+6. Who owns cleanup, what can grow without a bound, and what happens under concurrency?
+7. Is each interface smaller and more stable than its implementation, and does each
+   abstraction remove knowledge from callers?
+8. Does this make the next related change easier, and can obsolete code now be deleted?
+9. Do tests protect behavior rather than implementation details?
+10. Is the complexity justified by a real requirement, and would another engineer know
+    where to modify this behavior six months from now?
