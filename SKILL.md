@@ -88,10 +88,9 @@ use this protocol and note it only when it materially reduces verification.
 
 ## 3. Delegation
 
-Fan out across multiple workers only for independent, read-only slices whose value justifies
-roughly an order of magnitude more tokens than one agent. Keep the parent as the sole code
-writer; do not dispatch parallel writers. Split research by sub-question, not by source;
-simple or sequential work stays in the main thread.
+Fan out only for independent, read-only slices whose value justifies roughly an order of
+magnitude more tokens than one agent. The parent is the sole code writer; never dispatch
+parallel writers. Split research by sub-question, not by source.
 
 - **Brief before dispatch.** Give each worker an objective, output contract, owned scope,
   sources or tools, budget, and stop condition; dispatch after acceptance criteria are fixed.
@@ -99,14 +98,16 @@ simple or sequential work stays in the main thread.
   command and observed output, and what was not checked. "Done" is a claim, not a pass.
 - **Keep context clean.** Workers write detail to a scratch file outside tracked sources and
   return a short summary plus its path, not a transcript; or return concise evidence directly.
-- **Bound the fan-out.** Start with 2–4 workers, give each a distinct slice, set per-worker
-  timeouts, and do not spawn follow-up exploratory batches when returns diminish.
+- **Bound the fan-out.** Dispatch 2–4 workers with distinct slices, per-worker timeouts,
+  and a total token/time budget; stop dispatch and cancel active workers on exhaustion.
+- **Fail closed.** Pin revision and working-tree state; discard returns if either changes.
+  A worker that times out, fails, or returns partial or malformed output is unverified;
+  retry once only for transient host/network errors. Report failed or unrun slices as gaps.
 - **Synthesize centrally.** Deduplicate, reconcile conflicting observations by evidence
   strength (reproduced > read > claimed); contracts govern intended behavior. Preserve
   dissent and keep the decision in the parent.
 - **Review independently.** A reviewer gets the diff, acceptance criteria, and contracts,
-  not the author's reasoning. An author cannot review their own diff, and a parent cannot
-  independently review its child's work.
+  not the author's reasoning; an author, or a parent reviewing its child, is not independent.
 
 ## 4. Design
 

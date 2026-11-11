@@ -19,7 +19,7 @@ the risk, and an honest `COMPLETE` / `PARTIAL` / `BLOCKED` report.
   to the matching step.
 - **Delegation, with one writer.** Fan out only for independent, read-only slices; brief each
   worker with an objective, scope, output contract, and budget; treat returns as evidence,
-  not verdicts, and keep synthesis in the parent.
+  not verdicts, report failed or unrun slices as gaps, and keep synthesis in the parent.
 - **Evidence scaled to risk.** Pre-fix evidence, recorded commands, and independent review
   scale with the mode. A skipped or unavailable check never counts as a pass.
 - **Design rules.** Seven rule groups for the code the agent writes (ownership, boundaries,

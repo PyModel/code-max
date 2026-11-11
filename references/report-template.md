@@ -24,7 +24,8 @@ Operations (High-risk only):
 - Migration; rollout; rollback; observability
 
 Delegation (if used):
-- Worker -> scope -> read/not read; claims verified or still unverified
+- Slice -> worker -> revision (clean/dirty) -> evidence path -> read/not read
+  Status: DONE/FAILED/TIMED_OUT/UNRUN; claims: verified/unverified
 
 Limits:
 - Unknowns, unavailable checks or reviews, pre-existing failures, remaining work
