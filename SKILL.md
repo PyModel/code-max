@@ -56,7 +56,7 @@ deterministic reproducer or directly observed failure. Never fabricate a red run
 
 **Implement.** Fix the invariant at the smallest correct shared layer. Infer architecture
 from the code and reuse its conventions and helpers; do not impose patterns because they
-are familiar, and apply the design rules in section 3 to the code you add. Wire every
+are familiar, and apply the design rules in section 4 to the code you add. Wire every
 required path: unused helpers and fake success paths are not
 delivery. Validate untrusted input at boundaries and make failure explicit; never swallow
 errors, fabricate data, or weaken authorization. Preserve compatibility unless the change
@@ -79,15 +79,36 @@ cannot establish intended behavior, keep both and report the ambiguity.
 **Review.** Read the final diff and status as a domain engineer: boundaries, failure paths,
 security, concurrency, compatibility, resources. Remove debug artifacts, dead code, and
 unrelated formatting. For High-risk work, request an independent read-only review scoped to
-correctness when available, without blocking required work; its absence is a reported
-limitation, not by itself a reason for `PARTIAL`. Self-review, including of a child agent's
-work, is not independent. Rerun affected checks after the last relevant edit; an old green
-run does not verify a new tree. When available, load
-[quality gates](references/quality-gates.md) only for affected domains, and for Substantial
-work and above answer its review questions against the final diff; if a reference is
-missing, use this protocol and note it only when it materially reduces verification.
+correctness per section 3 when available, without blocking required work; its absence is a
+reported limitation, not by itself a reason for `PARTIAL`. Rerun affected checks after the
+last relevant edit; an old green run does not verify a new tree. When available, load
+[quality gates](references/quality-gates.md) for affected domains; for Substantial work and
+above also answer its review questions against the final diff; if a reference is missing,
+use this protocol and note it only when it materially reduces verification.
 
-## 3. Design
+## 3. Delegation
+
+Fan out across multiple workers only for independent, read-only slices whose value justifies
+roughly an order of magnitude more tokens than one agent. Keep the parent as the sole code
+writer; do not dispatch parallel writers. Split research by sub-question, not by source;
+simple or sequential work stays in the main thread.
+
+- **Brief before dispatch.** Give each worker an objective, output contract, owned scope,
+  sources or tools, budget, and stop condition; dispatch after acceptance criteria are fixed.
+- **Return evidence, not verdicts.** Require `file:line` or a source URL with date, the
+  command and observed output, and what was not checked. "Done" is a claim, not a pass.
+- **Keep context clean.** Workers write detail to a scratch file outside tracked sources and
+  return a short summary plus its path, not a transcript; or return concise evidence directly.
+- **Bound the fan-out.** Start with 2–4 workers, give each a distinct slice, set per-worker
+  timeouts, and do not spawn follow-up exploratory batches when returns diminish.
+- **Synthesize centrally.** Deduplicate, reconcile conflicting observations by evidence
+  strength (reproduced > read > claimed); contracts govern intended behavior. Preserve
+  dissent and keep the decision in the parent.
+- **Review independently.** A reviewer gets the diff, acceptance criteria, and contracts,
+  not the author's reasoning. An author cannot review their own diff, and a parent cannot
+  independently review its child's work.
+
+## 4. Design
 
 Rules for the code you write, applied within the repository's own structure. The test for
 every addition: am I adding code, or a new place future readers must understand?
@@ -137,7 +158,7 @@ When rules conflict: correctness → explicit invariants → clear ownership →
 effects → bounded resources → failure safety → locality → replaceability → extensibility →
 optimization.
 
-## 4. Safety
+## 5. Safety
 
 - Stay inside the workspace and task scope. Never print environment values, credentials,
   or secret files; check a variable's presence, not its value.
@@ -148,7 +169,7 @@ optimization.
 - Commit, push, open a PR, merge, and deploy are separate permissions. When committing,
   stage exact paths and inspect the staged diff.
 
-## 5. Findings and evidence
+## 6. Findings and evidence
 
 Record material defects you discover as you go. Interrupt only when one changes scope,
 safety, strategy, or completion status; otherwise list it in the report with a next action.
@@ -160,7 +181,7 @@ Keep enough evidence to reproduce each material claim. For performance, migratio
 security, or environment-dependent results, record exact commands, environment, and
 revision. Report only results you observed.
 
-## 6. Report
+## 7. Report
 
 | Status | Meaning |
 | --- | --- |

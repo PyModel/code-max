@@ -17,6 +17,9 @@ the risk, and an honest `COMPLETE` / `PARTIAL` / `BLOCKED` report.
   coherent slice, then verify. A failure is sorted as an implementation defect, a bad
   assumption, an environment problem, or an ambiguous contract, and the agent loops back
   to the matching step.
+- **Delegation, with one writer.** Fan out only for independent, read-only slices; brief each
+  worker with an objective, scope, output contract, and budget; treat returns as evidence,
+  not verdicts, and keep synthesis in the parent.
 - **Evidence scaled to risk.** Pre-fix evidence, recorded commands, and independent review
   scale with the mode. A skipped or unavailable check never counts as a pass.
 - **Design rules.** Seven rule groups for the code the agent writes (ownership, boundaries,

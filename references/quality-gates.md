@@ -47,3 +47,5 @@ For Substantial work and above, answer each against the final diff:
 9. Do tests protect behavior rather than implementation details?
 10. Is the complexity justified by a real requirement, and would another engineer know
     where to modify this behavior six months from now?
+11. If work was delegated, does the report name each worker's scope, what it actually
+    read, and which delegated claims remain unverified?

@@ -23,6 +23,9 @@ Findings:
 Operations (High-risk only):
 - Migration; rollout; rollback; observability
 
+Delegation (if used):
+- Worker -> scope -> read/not read; claims verified or still unverified
+
 Limits:
 - Unknowns, unavailable checks or reviews, pre-existing failures, remaining work
 ```
