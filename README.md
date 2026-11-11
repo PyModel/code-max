@@ -18,8 +18,9 @@ the risk, and an honest `COMPLETE` / `PARTIAL` / `BLOCKED` report.
   assumption, an environment problem, or an ambiguous contract, and the agent loops back
   to the matching step.
 - **Delegation, with one writer.** Fan out only for independent, read-only slices; brief each
-  worker with an objective, scope, output contract, and budget; treat returns as evidence,
-  not verdicts, report failed or unrun slices as gaps, and keep synthesis in the parent.
+  worker with an objective, scope, output contract, budget, and timeout; treat returns as
+  evidence, not verdicts; report failed or unrun slices as gaps; review independently and
+  keep synthesis in the parent.
 - **Evidence scaled to risk.** Pre-fix evidence, recorded commands, and independent review
   scale with the mode. A skipped or unavailable check never counts as a pass.
 - **Design rules.** Seven rule groups for the code the agent writes (ownership, boundaries,
